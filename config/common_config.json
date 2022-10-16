@@ -1,0 +1,16 @@
+{
+  "time_to_backup_s" : 30,
+
+  "directory_to_dump" : "/home/maxim/CLionProjects/test_work_server/logs",
+
+  "network" : {
+    "host" : "10.0.0.7",
+    "port" : 8080,
+    "time_socket_expires_s" : 5
+  },
+
+  "logging" : {
+    "file_logger" : "general_file_logger",
+    "console_logger" : "general_console_logger"
+  }
+}
