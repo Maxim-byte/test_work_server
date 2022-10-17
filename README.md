@@ -8,7 +8,7 @@ General Description
 
 1) To pull all dependencies do - cd conan && conan install conanfile.txt --build=missing
 2) Log file create near binary file
-3) Correct user turn off by sendin SIGTERM
+3) Correct user turn off by sending SIGTERM
 <h2>
 Description common_config.json
 </h2>
