@@ -1,3 +1,4 @@
+#include "../precompiled.hpp"
 #include "../include/api_handlers.hpp"
 
 #include <ranges>
@@ -27,7 +28,7 @@ api_handlers::response_with_string_body api_handlers::main_handler(api_handlers:
             "Success receive request: " + request.target().to_string(), spdlog::level::info);
 
     response.body() = "Ok!";
-    response.keep_alive(true);
+    response.keep_alive(request.keep_alive());
     response.prepare_payload();
     return response;
 }
@@ -52,7 +53,7 @@ api_handlers::response_with_string_body api_handlers::square_handler(api_handler
     response.body() = std::to_string(std::accumulate(modified_iterator.begin(), modified_iterator.end(), 0.0) /
                                      static_cast<double>(container::unique_container.size()));
 
-    response.keep_alive(true);
+    response.keep_alive(request.keep_alive());
     response.prepare_payload();
     return response;
 }

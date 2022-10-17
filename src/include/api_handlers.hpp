@@ -18,4 +18,3 @@ struct api_handlers {
             {"/v1/square", &api_handlers::square_handler}
     };
 };
-

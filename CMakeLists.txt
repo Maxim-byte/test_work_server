@@ -19,4 +19,10 @@ add_executable(test_work_server
         src/include/unique_container.hpp
         )
 
+add_subdirectory(test)
+
+target_precompile_headers(test_work_server PRIVATE src/precompiled.hpp)
+
 target_link_libraries(test_work_server ${CONAN_LIBS})
+
+enable_testing()

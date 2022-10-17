@@ -1,9 +1,12 @@
+#include "../precompiled.hpp"
 #include "../include/server.hpp"
 
 #include <memory>
 #include <iostream>
 
 #include "../include/tcp_session.hpp"
+#include "../include/config_manager.hpp"
+#include "../include/logger_wrapper.hpp"
 
 server::server(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint &&endpoint):
         io_(io), endpoint_(std::move(endpoint)), acceptor_(boost::asio::make_strand(io))
@@ -38,6 +41,9 @@ void server::start_accept() {
 
 void server::accept_callback(boost::beast::error_code ec, boost::asio::ip::tcp::socket socket) {
     if(!ec) {
+        logger_wrapper::log_message_in_multiple_logger(
+                config_manager::instance().get_logger_config().names_of_loggers,
+                "New client accepted!", spdlog::level::info);
         std::make_shared<session>(std::move(socket))->start_read();
     }
     start_accept();

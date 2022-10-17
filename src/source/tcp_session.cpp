@@ -1,3 +1,4 @@
+#include "../precompiled.hpp"
 #include "../include/tcp_session.hpp"
 
 #include <chrono>

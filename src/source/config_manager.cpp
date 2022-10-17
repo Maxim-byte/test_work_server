@@ -1,3 +1,4 @@
+#include "../precompiled.hpp"
 #include "../include/config_manager.hpp"
 
 #include <fstream>
@@ -6,8 +7,10 @@
 
 #include <boost/asio.hpp>
 
+std::string config_manager::path_to_config =  "./../../config/common_config.json";
+
 config_manager::config_manager() {
-    std::ifstream config_stream(path_to_config_.data());
+    std::ifstream config_stream(path_to_config);
     assert(config_stream.is_open());
 
     try {
@@ -15,6 +18,9 @@ config_manager::config_manager() {
 
         time_to_backup_in_s_ = config["time_to_backup_s"].get<std::uint8_t>();
         assert(time_to_backup_in_s_ != 0);
+
+        time_to_flush_logs_in_s_ = config["time_to_flush_logs_s"].get<std::uint8_t>();
+        assert(time_to_flush_logs_in_s_ != 0);
 
         directory_to_dump_ = config["directory_to_dump"].get<std::string>();
 
@@ -47,7 +53,11 @@ const logger_config &config_manager::get_logger_config() const {
     return logger_config_;
 }
 
-uint8_t config_manager::get_backup_time() const {
+std::uint8_t config_manager::get_flush_period_time() const {
+    return time_to_flush_logs_in_s_;
+}
+
+std::uint8_t config_manager::get_period_making_dump() const {
     return time_to_backup_in_s_;
 }
 

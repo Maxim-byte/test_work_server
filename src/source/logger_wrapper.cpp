@@ -1,3 +1,4 @@
+#include "../precompiled.hpp"
 #include "../include/logger_wrapper.hpp"
 
 #include <ranges>

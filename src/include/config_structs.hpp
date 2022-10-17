@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdint>
 
-#include "boost/asio.hpp"
+#include <boost/asio.hpp>
 
 struct network_config {
     boost::asio::ip::address_v4 host;
