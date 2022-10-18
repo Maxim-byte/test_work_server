@@ -28,8 +28,10 @@ int main() {
     spdlog::flush_every(std::chrono::seconds(config_manager.get_flush_period_time()));
 
     //setup dump manager
-    dump_manager<decltype(container::unique_container)> dump_manager(container::unique_container,
-                                                                     config_manager::instance().get_dump_directory_time());
+    dump_manager<decltype(container::unique_container), decltype(container::unique_container_mutex)> dump_manager(
+            container::unique_container,
+            container::unique_container_mutex,
+            config_manager::instance().get_dump_directory_time());
     dump_manager.start();
 
     boost::asio::io_context io;

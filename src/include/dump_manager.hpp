@@ -13,17 +13,29 @@
 #include "../include/config_manager.hpp"
 #include "../include/logger_wrapper.hpp"
 
-template<class T> requires std::ranges::input_range<T>
+template<typename T>
+concept has_lock_method = requires {
+    { std::declval<T>().lock()} -> std::same_as<void>;
+};
+
+template<typename T>
+concept has_unlock_method = requires {
+    { std::declval<T>().unlock()} -> std::same_as<void>;
+};
+
+template<class boost_archive_serializable_container, class sync_primitive> requires has_lock_method<sync_primitive> && has_unlock_method<sync_primitive>
 class dump_manager {
 public:
-    explicit dump_manager(const T &container, const std::filesystem::path &path_to_directory) :
+    using type_of_sync = sync_primitive;
+
+    explicit dump_manager(const boost_archive_serializable_container &container, sync_primitive & sync, const std::filesystem::path &path_to_directory) :
     container_(container),
+    sync_(sync),
     path_to_dump_directory_(path_to_directory)
     {}
 
     ~dump_manager() {
-        is_running = false;
-        thread_.join();
+        stop();
     }
 
     void start() {
@@ -32,10 +44,12 @@ public:
 
     void stop() {
         is_running = false;
+        thread_.join();
     }
 
 private:
-    const T &container_;
+    const boost_archive_serializable_container &container_;
+    sync_primitive & sync_;
     std::thread thread_;
     std::atomic<bool> is_running = true;
     const std::filesystem::path path_to_dump_directory_;
@@ -47,7 +61,7 @@ private:
         }
     }
 
-    std::error_code make_dump(const std::filesystem::path &path_to_directory) {
+    void make_dump(const std::filesystem::path &path_to_directory) {
         std::error_code ec;
         if (!std::filesystem::exists(path_to_directory)) {
             std::filesystem::create_directory(path_to_directory, ec);
@@ -56,6 +70,7 @@ private:
         if (ec) {
             logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
                                                            "Can't create dump directory:", spdlog::level::err);
+            return;
         }
 
         boost::posix_time::ptime local_time = boost::posix_time::second_clock::local_time();
@@ -67,13 +82,16 @@ private:
         if (!stream_to_backup_file.is_open()) {
             logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
                                                            "Can't open stream to dump file:", spdlog::level::err);
-            return std::make_error_code(std::errc::text_file_busy);
+            return;
         }
 
         boost::archive::binary_oarchive serialization(stream_to_backup_file, boost::archive::archive_flags::no_header);
+
+        std::unique_lock<type_of_sync> unique_lock(sync_);
         serialization & container_;
+        unique_lock.unlock();
+
         logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
                                                        "Dump created successfully:", spdlog::level::info);
-        return {};
     }
 };

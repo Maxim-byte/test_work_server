@@ -48,10 +48,13 @@ api_handlers::response_with_string_body api_handlers::square_handler(api_handler
     }
 
     //processing container operation
+    std::unique_lock<std::mutex> unique_lock(container::unique_container_mutex);
     container::unique_container.insert(value);
+
     auto modified_iterator = container::unique_container | std::views::transform(square);
     response.body() = std::to_string(std::accumulate(modified_iterator.begin(), modified_iterator.end(), 0.0) /
                                      static_cast<double>(container::unique_container.size()));
+    unique_lock.unlock();
 
     response.keep_alive(request.keep_alive());
     response.prepare_payload();
