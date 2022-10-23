@@ -16,3 +16,8 @@ struct logger_config {
     std::string name_of_console_logger;
     std::vector<std::string> names_of_loggers;
 };
+
+struct prometheus_config {
+    std::string host;
+    std::uint16_t port;
+};

@@ -26,12 +26,15 @@ public:
 
     [[nodiscard]] const std::filesystem::path &get_dump_directory_time() const;
 
+    [[nodiscard]] const prometheus_config &get_prometheus_config() const;
+
 private:
     config_manager();
 
 private:
     network_config network_config_{};
     logger_config logger_config_{};
+    prometheus_config prometheus_config_{};
 
     std::uint8_t time_to_flush_logs_in_s_{};
     std::uint8_t time_to_backup_in_s_{};

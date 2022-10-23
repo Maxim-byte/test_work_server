@@ -3,17 +3,19 @@
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
 
-class server : public std::enable_shared_from_this<server>
-{
+#include "prometheus_manager.hpp"
+
+class server : public std::enable_shared_from_this<server> {
 public:
-    server(boost::asio::io_context & io, boost::asio::ip::tcp::endpoint && endpoint);
+    server(boost::asio::io_context &io, boost::asio::ip::tcp::endpoint &&endpoint, prometheus_manager &prometheus_manager);
 
     void start();
 
 private:
-    boost::asio::io_context & io_;
+    boost::asio::io_context &io_;
     boost::asio::ip::tcp::endpoint endpoint_;
     boost::asio::ip::tcp::acceptor acceptor_;
+    prometheus_manager &prometheus_manager_;
 
     void start_accept();
 

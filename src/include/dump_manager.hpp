@@ -15,24 +15,25 @@
 
 template<typename T>
 concept has_lock_method = requires {
-    { std::declval<T>().lock()} -> std::same_as<void>;
+    { std::declval<T>().lock() } -> std::same_as<void>;
 };
 
 template<typename T>
 concept has_unlock_method = requires {
-    { std::declval<T>().unlock()} -> std::same_as<void>;
+    { std::declval<T>().unlock() } -> std::same_as<void>;
 };
 
-template<class boost_archive_serializable_container, class sync_primitive> requires has_lock_method<sync_primitive> && has_unlock_method<sync_primitive>
+template<class boost_archive_serializable_container, class sync_primitive> requires has_lock_method<sync_primitive> &&
+                                                                                    has_unlock_method<sync_primitive>
 class dump_manager {
 public:
     using type_of_sync = sync_primitive;
 
-    explicit dump_manager(const boost_archive_serializable_container &container, sync_primitive & sync, const std::filesystem::path &path_to_directory) :
-    container_(container),
-    sync_(sync),
-    path_to_dump_directory_(path_to_directory)
-    {}
+    explicit dump_manager(const boost_archive_serializable_container &container, sync_primitive &sync,
+                          const std::filesystem::path &path_to_directory) :
+            container_(container),
+            sync_(sync),
+            path_to_dump_directory_(path_to_directory) {}
 
     ~dump_manager() {
         stop();
@@ -44,12 +45,14 @@ public:
 
     void stop() {
         is_running = false;
-        thread_.join();
+        if (thread_.joinable()) {
+            thread_.join();
+        }
     }
 
 private:
     const boost_archive_serializable_container &container_;
-    sync_primitive & sync_;
+    sync_primitive &sync_;
     std::thread thread_;
     std::atomic<bool> is_running = true;
     const std::filesystem::path path_to_dump_directory_;

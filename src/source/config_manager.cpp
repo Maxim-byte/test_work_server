@@ -25,15 +25,22 @@ config_manager::config_manager() {
         directory_to_dump_ = config["directory_to_dump"].get<std::string>();
 
         network_config_.port = config["network"]["port"].get<std::uint16_t>();
+        assert(network_config_.port != 0);
         auto host = config["network"]["host"].get<std::string>();
         network_config_.time_socket_expires_seconds = config["network"]["time_socket_expires_s"].get<std::uint8_t>();
 
         boost::system::error_code ec;
         network_config_.host = boost::asio::ip::make_address_v4(host, ec);
-        assert(!ec && "Host is inconvertible to ipV4!");
+        assert(!ec && "Server host is inconvertible to ipV4!");
 
         logger_config_.name_of_file_logger = config["logging"]["file_logger"].get<std::string>();
         logger_config_.name_of_console_logger = config["logging"]["console_logger"].get<std::string>();
+
+        prometheus_config_.host = config["prometheus"]["host"].get<std::string>();
+        prometheus_config_.port = config["prometheus"]["port"].get<std::uint16_t>();
+        assert(prometheus_config_.port != 0);
+        auto prometheus_host = boost::asio::ip::make_address_v4(prometheus_config_.host, ec);
+        assert(!ec && "Prometheus host is inconvertible to ipV4!");
 
         assert(logger_config_.name_of_console_logger != logger_config_.name_of_file_logger);
         logger_config_.names_of_loggers.push_back(logger_config_.name_of_console_logger);
@@ -63,4 +70,8 @@ std::uint8_t config_manager::get_period_making_dump() const {
 
 const std::filesystem::path &config_manager::get_dump_directory_time() const {
     return directory_to_dump_;
+}
+
+const prometheus_config &config_manager::get_prometheus_config() const {
+    return prometheus_config_;
 }

@@ -11,6 +11,11 @@
     "time_socket_expires_s" : 5
   },
 
+  "prometheus" : {
+    "host" : "127.0.0.1",
+    "port" : 8080
+  },
+
   "logging" : {
     "file_logger" : "general_file_logger",
     "console_logger" : "general_console_logger"

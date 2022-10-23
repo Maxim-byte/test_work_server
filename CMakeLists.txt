@@ -15,6 +15,10 @@ add_executable(test_work_server
         src/source/response_template_helper.cpp
         src/source/api_handlers.cpp
         src/source/server.cpp
+        src/source/prometheus_details.cpp
+        src/source/prometheus_manager.cpp
+        src/include/prometheus_manager.hpp
+        src/include/prometheus_details.hpp
         src/include/dump_manager.hpp
         src/include/unique_container.hpp
         )

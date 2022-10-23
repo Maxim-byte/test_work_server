@@ -13,8 +13,9 @@ namespace {
     std::uint8_t time_expires_socket_in_seconds = config_manager::instance().get_network_config().time_socket_expires_seconds;
 }
 
-session::session(boost::asio::ip::tcp::socket &&socket) :
-        stream_(std::move(socket)) {
+session::session(boost::asio::ip::tcp::socket &&socket, prometheus_manager &prometheus_manager) :
+        stream_(std::move(socket)),
+        prometheus_manager_(prometheus_manager) {
 }
 
 void session::start_read() {
@@ -36,7 +37,16 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
     } else {
         auto response = validate_request_and_get_response(req_);
         //lifetime of response need to extend.
-        response_type_erasure_ = response;
+        response_ = response;
+        try {
+            prometheus_manager_.get_request_metric(std::string_view(req_.method_string().data(),
+                                                                    req_.method_string().size())).Increment();
+        } catch (const std::runtime_error &ex) {
+            logger_wrapper::log_message_in_multiple_logger(
+                    config_manager::instance().get_logger_config().names_of_loggers,
+                    ex.what(), spdlog::level::warn);
+        }
+
         boost::beast::http::async_write(stream_, *response,
                                         boost::beast::bind_front_handler(&session::write_callback, shared_from_this(),
                                                                          response->need_eof()));
@@ -45,15 +55,21 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
 
 void session::write_callback(bool need_to_close, boost::beast::error_code ec, std::size_t) {
     if (ec) {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                "Error occurred while writing:" + ec.what(), spdlog::level::err);
-        return;
+            logger_wrapper::log_message_in_multiple_logger(
+                    config_manager::instance().get_logger_config().names_of_loggers,
+                    "Error occurred while writing:" + ec.what(), spdlog::level::err);
     }
     if (need_to_close) {
         close_stream();
     }
-    response_type_erasure_ = nullptr;
+    try {
+        prometheus_manager_.get_response_metric(std::to_string(response_->result_int())).Increment();
+    } catch (const std::runtime_error &ex) {
+        logger_wrapper::log_message_in_multiple_logger(
+                config_manager::instance().get_logger_config().names_of_loggers,
+                ex.what(), spdlog::level::warn);
+    }
+    response_ = nullptr;
     start_read();
 }
 

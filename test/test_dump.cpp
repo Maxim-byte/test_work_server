@@ -22,7 +22,7 @@ TEST(base_test, dump_test)
     auto console_logger = logger_wrapper(spdlog::stdout_color_mt(config_manager::instance().get_logger_config().name_of_console_logger));
     std::unordered_set<std::uint16_t> serialize_set{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     dump_manager<decltype(serialize_set)> dumpManager(serialize_set, "./");
-    dumpManager.start();
+    dumpManager.start_post_system_metrics();
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
@@ -52,7 +52,7 @@ TEST(base_test, directory_not_exist_dump_test)
     auto console_logger = logger_wrapper(spdlog::stdout_color_mt(config_manager::instance().get_logger_config().name_of_console_logger));
     std::unordered_set<std::uint16_t> serialize_set{};
     dump_manager<decltype(serialize_set)> dumpManager(serialize_set, directory_name_for_dumping);
-    dumpManager.start();
+    dumpManager.start_post_system_metrics();
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
 
