@@ -13,6 +13,11 @@
 #include "../src/include/dump_manager.hpp"
 #include "../src/include/config_manager.hpp"
 
+namespace {
+    constexpr auto dump_samples = 5;
+}
+
+
 TEST(base_test, dump_test)
 {
     config_manager::path_to_config = "./../../../test/config/test_config.json";
@@ -21,10 +26,12 @@ TEST(base_test, dump_test)
 
     auto console_logger = logger_wrapper(spdlog::stdout_color_mt(config_manager::instance().get_logger_config().name_of_console_logger));
     std::unordered_set<std::uint16_t> serialize_set{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-    dump_manager<decltype(serialize_set)> dumpManager(serialize_set, "./");
-    dumpManager.start_post_system_metrics();
+    std::mutex mutex;
+    dump_manager<decltype(serialize_set), decltype(mutex)> dumpManager(serialize_set, mutex, "./");
+    dumpManager.start();
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(
+            std::chrono::seconds(config_manager::instance().get_period_making_dump() *dump_samples));
 
     std::unordered_set<std::uint16_t> deserialize_set;
     auto directory_it = std::filesystem::directory_iterator("./");
@@ -51,10 +58,11 @@ TEST(base_test, directory_not_exist_dump_test)
 
     auto console_logger = logger_wrapper(spdlog::stdout_color_mt(config_manager::instance().get_logger_config().name_of_console_logger));
     std::unordered_set<std::uint16_t> serialize_set{};
-    dump_manager<decltype(serialize_set)> dumpManager(serialize_set, directory_name_for_dumping);
-    dumpManager.start_post_system_metrics();
+    std::mutex mutex;
+    dump_manager<decltype(serialize_set), decltype(mutex)> dumpManager(serialize_set, mutex, directory_name_for_dumping);
+    dumpManager.start();
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(std::chrono::seconds(config_manager::instance().get_period_making_dump() * dump_samples));
 
     EXPECT_TRUE(std::filesystem::exists(directory_name_for_dumping));
     std::filesystem::remove_all(directory_name_for_dumping);

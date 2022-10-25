@@ -45,7 +45,7 @@ int main() {
     //correct closing by signal
     boost::asio::signal_set signals(io, SIGTERM);
     signals.async_wait([&](const boost::system::error_code &error, int signal_number) {
-        console_logger.logger()->info("Close application, it can takes several minutes!");
+        console_logger.logger()->info("Close application and making dump, it can takes several minutes!");
         io.stop();
     });
 
@@ -62,7 +62,7 @@ int main() {
 
         http_server->start();
         logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
-                                                       "Server successfully start_post_system_metrics!", spdlog::level::info);
+                                                       "Server successfully start!", spdlog::level::info);
     } catch (const std::exception &ex) {
         logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
                                                        ex.what(), spdlog::level::critical);

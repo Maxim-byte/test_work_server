@@ -29,11 +29,14 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
     if (ec == boost::beast::http::error::end_of_stream)
         return close_stream();
 
-    if (ec != boost::beast::error::timeout && ec) {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                "Error occurred while reading:" + ec.what(), spdlog::level::err);
-        close_stream();
+    if (ec) {
+        //socket may be closed due to timeout
+        if (stream_.socket().is_open()) {
+            logger_wrapper::log_message_in_multiple_logger(
+                    config_manager::instance().get_logger_config().names_of_loggers,
+                    "Error occurred while reading:" + ec.what(), spdlog::level::warn);
+            close_stream();
+        }
     } else {
         auto response = validate_request_and_get_response(req_);
         //lifetime of response need to extend.
@@ -55,19 +58,22 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
 
 void session::write_callback(bool need_to_close, boost::beast::error_code ec, std::size_t) {
     if (ec) {
-            logger_wrapper::log_message_in_multiple_logger(
-                    config_manager::instance().get_logger_config().names_of_loggers,
-                    "Error occurred while writing:" + ec.what(), spdlog::level::err);
+        logger_wrapper::log_message_in_multiple_logger(
+                config_manager::instance().get_logger_config().names_of_loggers,
+                "Error occurred while writing:" + ec.what(), spdlog::level::warn);
+        return;
     }
-    if (need_to_close) {
-        close_stream();
-    }
+    //write metrics to prometheus
     try {
         prometheus_manager_.get_response_metric(std::to_string(response_->result_int())).Increment();
     } catch (const std::runtime_error &ex) {
         logger_wrapper::log_message_in_multiple_logger(
                 config_manager::instance().get_logger_config().names_of_loggers,
                 ex.what(), spdlog::level::warn);
+    }
+    if (need_to_close) {
+        close_stream();
+        return;
     }
     response_ = nullptr;
     start_read();
@@ -81,7 +87,7 @@ void session::close_stream() {
     if (ec) {
         logger_wrapper::log_message_in_multiple_logger(
                 config_manager::instance().get_logger_config().names_of_loggers,
-                "Error occurred while close session:" + ec.what(), spdlog::level::err);
+                "Error occurred while close session:" + ec.what(), spdlog::level::warn);
     }
 }
 

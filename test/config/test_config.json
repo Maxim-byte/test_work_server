@@ -1,9 +1,9 @@
 {
   "time_to_flush_logs_s" : 5,
 
-  "time_to_backup_s" : 30,
+  "time_to_backup_s" : 1,
 
-  "directory_to_dump" : "./../dumps",
+  "directory_to_dump" : "./dumps",
 
   "network" : {
     "host" : "10.0.0.7",
