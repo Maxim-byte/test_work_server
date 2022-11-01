@@ -4,6 +4,7 @@ spdlog/1.10.0
 nlohmann_json/3.11.2
 gtest/cci.20210126
 prometheus-cpp/1.0.1
+rpclib/2.3.0
 
 [generators]
 cmake

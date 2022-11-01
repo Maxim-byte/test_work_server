@@ -16,7 +16,7 @@ public:
         return config_manager;
     }
 
-    [[nodiscard]] const network_config &get_network_config() const;
+    [[nodiscard]] const rest_config &get_network_config() const;
 
     [[nodiscard]] const logger_config &get_logger_config() const;
 
@@ -28,11 +28,24 @@ public:
 
     [[nodiscard]] const prometheus_config &get_prometheus_config() const;
 
+    [[nodiscard]] const rpc_config &get_rpc_config() const;
+
 private:
     config_manager();
 
+    void read_rpc_config(nlohmann::json & config);
+
+    void read_common_config(nlohmann::json & config);
+
+    void read_network_config(nlohmann::json & config);
+
+    void read_logger_config(nlohmann::json & config);
+
+    void read_prometheus_config(nlohmann::json & config);
+
 private:
-    network_config network_config_{};
+    rpc_config rpc_config_{};
+    rest_config network_config_{};
     logger_config logger_config_{};
     prometheus_config prometheus_config_{};
 

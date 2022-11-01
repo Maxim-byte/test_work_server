@@ -1,23 +1,24 @@
 {
-  "time_to_flush_logs_s" : 5,
-
-  "time_to_backup_s" : 30,
-
-  "directory_to_dump" : "./../dumps",
-
-  "network" : {
-    "host" : "127.0.0.1",
-    "port" : 8010,
-    "time_socket_expires_s" : 5
+  "common_settings": {
+    "time_to_flush_logs_s": 5,
+    "time_to_backup_s": 30,
+    "directory_to_dump": "./../dumps"
   },
-
-  "prometheus" : {
-    "host" : "127.0.0.1",
-    "port" : 8080
+  "rest_config": {
+    "host": "127.0.0.1",
+    "port": 8010,
+    "time_socket_expires_s": 5
   },
-
-  "logging" : {
-    "file_logger" : "general_file_logger",
-    "console_logger" : "general_console_logger"
+  "rpc_config": {
+    "host": "127.0.0.1",
+    "port": 8020
+  },
+  "prometheus_config": {
+    "host": "127.0.0.1",
+    "port": 8080
+  },
+  "logging": {
+    "file_logger": "general_file_logger",
+    "console_logger": "general_console_logger"
   }
 }

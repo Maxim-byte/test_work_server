@@ -4,7 +4,7 @@
 #include <ranges>
 #include <charconv>
 
-#include "../include/logger_wrapper.hpp"
+#include "../include/logger_group.hpp"
 #include "../include/config_manager.hpp"
 #include "../include/unique_container.hpp"
 #include "../include/response_template_helper.hpp"
@@ -23,9 +23,7 @@ api_handlers::response_with_string_body api_handlers::main_handler(api_handlers:
     boost::beast::http::response<boost::beast::http::string_body>
             response{boost::beast::http::status::ok, 11};
 
-    logger_wrapper::log_message_in_multiple_logger(
-            config_manager::instance().get_logger_config().names_of_loggers,
-            "Success receive request: " + request.target().to_string(), spdlog::level::info);
+    logger_group::log_message_to_group("Success receive request: " + request.target().to_string(), spdlog::level::info);
 
     response.body() = "Ok!";
     response.keep_alive(request.keep_alive());
@@ -37,9 +35,7 @@ api_handlers::response_with_string_body api_handlers::square_handler(api_handler
     boost::beast::http::response<boost::beast::http::string_body>
             response{boost::beast::http::status::ok, 11};
 
-    logger_wrapper::log_message_in_multiple_logger(
-            config_manager::instance().get_logger_config().names_of_loggers,
-            "Success receive request: " + request.target().to_string(), spdlog::level::info);
+    logger_group::log_message_to_group("Success receive request: " + request.target().to_string(), spdlog::level::info);
 
     std::uint16_t value = 0;
     auto result = std::from_chars(request.body().data(), request.body().data() + request.body().size(), value);

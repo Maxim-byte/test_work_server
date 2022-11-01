@@ -10,13 +10,14 @@ conan_basic_setup()
 add_executable(test_work_server
         src/main.cpp
         src/source/config_manager.cpp
-        src/source/logger_wrapper.cpp
         src/source/tcp_session.cpp
         src/source/response_template_helper.cpp
         src/source/api_handlers.cpp
         src/source/server.cpp
         src/source/prometheus_details.cpp
         src/source/prometheus_manager.cpp
+        src/source/logger_group.cpp
+        src/include/logger_group.hpp
         src/include/prometheus_manager.hpp
         src/include/prometheus_details.hpp
         src/include/dump_manager.hpp

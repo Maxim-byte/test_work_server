@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "../include/api_handlers.hpp"
-#include "../include/logger_wrapper.hpp"
+#include "../include/logger_group.hpp"
 #include "../include/config_manager.hpp"
 #include "../include/response_template_helper.hpp"
 
@@ -32,9 +32,7 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
     if (ec) {
         //socket may be closed due to timeout
         if (stream_.socket().is_open()) {
-            logger_wrapper::log_message_in_multiple_logger(
-                    config_manager::instance().get_logger_config().names_of_loggers,
-                    "Error occurred while reading:" + ec.what(), spdlog::level::warn);
+            logger_group::log_message_to_group("Error occurred while reading:" + ec.what(), spdlog::level::warn);
             close_stream();
         }
     } else {
@@ -45,9 +43,7 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
             prometheus_manager_.get_request_metric(std::string_view(req_.method_string().data(),
                                                                     req_.method_string().size())).Increment();
         } catch (const std::runtime_error &ex) {
-            logger_wrapper::log_message_in_multiple_logger(
-                    config_manager::instance().get_logger_config().names_of_loggers,
-                    ex.what(), spdlog::level::warn);
+            logger_group::log_message_to_group(ex.what(), spdlog::level::warn);
         }
 
         boost::beast::http::async_write(stream_, *response,
@@ -58,18 +54,14 @@ void session::read_callback(boost::beast::error_code ec, std::size_t /*bytes_tra
 
 void session::write_callback(bool need_to_close, boost::beast::error_code ec, std::size_t) {
     if (ec) {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                "Error occurred while writing:" + ec.what(), spdlog::level::warn);
+        logger_group::log_message_to_group("Error occurred while writing:" + ec.what(), spdlog::level::warn);
         return;
     }
     //write metrics to prometheus
     try {
         prometheus_manager_.get_response_metric(std::to_string(response_->result_int())).Increment();
     } catch (const std::runtime_error &ex) {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                ex.what(), spdlog::level::warn);
+        logger_group::log_message_to_group(ex.what(), spdlog::level::warn);
     }
     if (need_to_close) {
         close_stream();
@@ -85,9 +77,7 @@ void session::close_stream() {
         stream_.socket().shutdown(boost::asio::ip::tcp::socket::shutdown_send, ec);
     }
     if (ec) {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                "Error occurred while close session:" + ec.what(), spdlog::level::warn);
+        logger_group::log_message_to_group("Error occurred while close session:" + ec.what(), spdlog::level::warn);
     }
 }
 
@@ -95,9 +85,7 @@ std::shared_ptr<boost::beast::http::response<boost::beast::http::string_body>> s
         boost::beast::http::request<boost::beast::http::string_body> &request) {
 
     if (req_.method() != boost::beast::http::verb::get) {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                "Invalid method of request:" + std::string(req_.method_string()), spdlog::level::info);
+        logger_group::log_message_to_group("Invalid method of request:" + std::string(req_.method_string()), spdlog::level::info);
         return std::make_shared<boost::beast::http::response<boost::beast::http::string_body>>
                 (response::templates::get_bad_response("Invalid verb of response!"));
     }
@@ -106,9 +94,7 @@ std::shared_ptr<boost::beast::http::response<boost::beast::http::string_body>> s
     if (auto api_callback = api_handlers::api_context.find(request.target().to_string()); api_callback != api_handlers::api_context.end()) {
         return std::make_shared<boost::beast::http::response<boost::beast::http::string_body>>(api_callback->second(request));
     } else {
-        logger_wrapper::log_message_in_multiple_logger(
-                config_manager::instance().get_logger_config().names_of_loggers,
-                "Invalid target of request:" + req_.target().to_string(), spdlog::level::info);
+        logger_group::log_message_to_group("Invalid target of request:" + req_.target().to_string(), spdlog::level::info);
         return std::make_shared<boost::beast::http::response<boost::beast::http::string_body>>
                 (response::templates::get_not_found_response("Invalid target of response!"));
     }

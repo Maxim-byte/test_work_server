@@ -3,8 +3,8 @@
 #include <chrono>
 #include <iostream>
 
+#include "../include/logger_group.hpp"
 #include "../include/config_manager.hpp"
-#include "../include/logger_wrapper.hpp"
 #include "../include/prometheus_details.hpp"
 
 prometheus_manager::prometheus_manager(std::string &&address) :
@@ -59,16 +59,12 @@ void prometheus_manager::post_general_metric() {
     //it makes no sense to do less than 20ms sleep, because taking metrics takes 15ms
     while (is_running) {
         if (auto used_memory = prometheus_details::get_used_ram(); used_memory == 0) {
-            logger_wrapper::log_message_in_multiple_logger(
-                    config_manager::instance().get_logger_config().names_of_loggers,
-                    "Can't get used memory!", spdlog::level::warn);
+            logger_group::log_message_to_group("Can't get used memory!", spdlog::level::warn);
         } else {
             system_metrics_.find("memory")->second.Set(used_memory);
         }
         if (auto used_cpu = prometheus_details::get_cpu_average_load(); used_cpu == 0) {
-            logger_wrapper::log_message_in_multiple_logger(
-                    config_manager::instance().get_logger_config().names_of_loggers,
-                    "Can't get used cpu!", spdlog::level::warn);
+            logger_group::log_message_to_group("Can't get used cpu!", spdlog::level::warn);
         } else {
             system_metrics_.find("CPU")->second.Set(used_cpu);
         }

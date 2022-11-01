@@ -12,7 +12,6 @@ add_executable(test_work_server_test
         test_dump.cpp
         response_test.cpp
         ../src/source/config_manager.cpp
-        ../src/source/logger_wrapper.cpp
         ../src/source/api_handlers.cpp
         ../src/source/response_template_helper.cpp
         )

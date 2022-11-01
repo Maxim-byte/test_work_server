@@ -10,8 +10,9 @@
 #include <boost/serialization/unordered_set.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "../include/config_manager.hpp"
-#include "../include/logger_wrapper.hpp"
+#include "logger_group.hpp"
+#include "config_manager.hpp"
+
 
 template<typename T>
 concept has_lock_method = requires {
@@ -71,8 +72,7 @@ private:
         }
 
         if (ec) {
-            logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
-                                                           "Can't create dump directory:", spdlog::level::err);
+            logger_group::log_message_to_group("Can't create dump directory!", spdlog::level::err);
             return;
         }
 
@@ -83,8 +83,7 @@ private:
         std::ofstream stream_to_backup_file(path_to_directory.string() + "/" + file_name.str());
 
         if (!stream_to_backup_file.is_open()) {
-            logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
-                                                           "Can't open stream to dump file:", spdlog::level::err);
+            logger_group::log_message_to_group("Can't open stream to dump file!", spdlog::level::err);
             return;
         }
 
@@ -94,7 +93,6 @@ private:
         serialization & container_;
         unique_lock.unlock();
 
-        logger_wrapper::log_message_in_multiple_logger(config_manager::instance().get_logger_config().names_of_loggers,
-                                                       "Dump created successfully:", spdlog::level::info);
+        logger_group::log_message_to_group("Dump created successfully!", spdlog::level::info);
     }
 };
