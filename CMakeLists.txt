@@ -17,6 +17,8 @@ add_executable(test_work_server
         src/source/prometheus_details.cpp
         src/source/prometheus_manager.cpp
         src/source/logger_group.cpp
+        src/source/rpc_handlers.cpp
+        src/include/rpc_handlers.hpp
         src/include/logger_group.hpp
         src/include/prometheus_manager.hpp
         src/include/prometheus_details.hpp

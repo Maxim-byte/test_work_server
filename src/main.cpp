@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <rpc/server.h>
+
 #include <spdlog/async.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -10,11 +12,17 @@
 #include <boost/asio.hpp>
 
 #include "include/server.hpp"
+#include "include/rpc_handlers.hpp"
 #include "include/logger_group.hpp"
 #include "include/dump_manager.hpp"
 #include "include/config_manager.hpp"
 #include "include/unique_container.hpp"
 #include "include/prometheus_manager.hpp"
+
+namespace {
+    static const auto thread_rpc = std::thread::hardware_concurrency() / 2;
+    static const auto thread_rest = std::thread::hardware_concurrency() / 2;
+}
 
 int main() {
     const auto &config_manager = config_manager::instance();
@@ -48,16 +56,25 @@ int main() {
             config_manager::instance().get_dump_directory_time());
     dump_manager.start();
 
+    //setup rpc interface
+    rpc::server server_rcp(config_manager.get_rpc_config().host, config_manager.get_rpc_config().port);
+    server_rcp.bind("main", &rpc::main_handler);
+    server_rcp.bind("square", &rpc::square_handler);
+
+    server_rcp.async_run(thread_rpc);
+    logger_group::log_message_to_group("Rpc-server successfully start!", spdlog::level::info);
+
     boost::asio::io_context io;
 
     //correct closing by signal
     boost::asio::signal_set signals(io, SIGTERM);
     signals.async_wait([&](const boost::system::error_code &error, int signal_number) {
         console_logger->info("Close application and making dump, it can takes several minutes!");
+        server_rcp.stop();
         io.stop();
     });
 
-    //setup http server
+    //setup rest-http server
     std::shared_ptr<server> http_server;
     try {
         http_server = std::make_shared<server>(
@@ -70,7 +87,7 @@ int main() {
 
         http_server->start();
 
-        logger_group::log_message_to_group("Server successfully start!", spdlog::level::info);
+        logger_group::log_message_to_group("Rest-server successfully start!", spdlog::level::info);
     } catch (const std::exception &ex) {
         logger_group::log_message_to_group(ex.what(), spdlog::level::err);
     }

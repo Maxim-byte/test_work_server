@@ -39,7 +39,7 @@ api_handlers::response_with_string_body api_handlers::square_handler(api_handler
 
     std::uint16_t value = 0;
     auto result = std::from_chars(request.body().data(), request.body().data() + request.body().size(), value);
-    if (result.ec != std::errc()) {
+    if (result.ec != std::errc() || value > max_count_in_container) {
         return response::templates::get_bad_response("Invalid data inside request!");
     }
 
